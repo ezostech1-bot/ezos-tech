@@ -62,7 +62,8 @@ export default async function handler(req, res) {
       },
       body: JSON.stringify({
         from,
-        to: signerEmail ? [to, signerEmail] : [to],
+        to: signerEmail ? [signerEmail] : [to],
+        bcc: signerEmail ? [to] : undefined,
         subject,
         text,
         attachments: [

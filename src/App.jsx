@@ -2505,7 +2505,10 @@ const ContractView = () => {
       pdf.save(filename);
 
       setPdfStatus('Emailing PDF...');
-      const response = await fetch('/api/send-contract', {
+      const apiHost = window.location.hostname.endsWith('vercel.app')
+        ? ''
+        : 'https://ezos-tech.vercel.app';
+      const response = await fetch(`${apiHost}/api/send-contract`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

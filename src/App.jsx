@@ -2879,6 +2879,11 @@ function App() {
     if (typeof document === 'undefined') return;
     const meta = document.querySelector('meta[name="robots"]');
     if (!meta) return;
+    const isVercelHost = window.location.hostname.endsWith('vercel.app');
+    if (isVercelHost) {
+      meta.setAttribute('content', 'noindex,nofollow');
+      return;
+    }
     meta.setAttribute('content', currentView === 'contract' ? 'noindex,nofollow' : 'index,follow');
   }, [currentView]);
 

@@ -2503,6 +2503,7 @@ const ContractView = () => {
       const filename = `EZOS-Contract-${contractMeta?.label ?? contractType}.pdf`;
       const pdfDataUri = pdf.output('datauristring');
       const pdfBase64 = pdfDataUri.split(',')[1] || '';
+      const pdfSizeKB = Math.round((pdfBase64.length * 0.75) / 1024);
       pdf.save(filename);
 
       setPdfStatus('Emailing PDF...');
@@ -2527,8 +2528,10 @@ const ContractView = () => {
             contractLabel: contractMeta?.label ?? contractType.toUpperCase(),
             setupFee: `$${setupFee.toLocaleString()}`,
             monthlyFee: contractMeta?.monthly ? `$${contractMeta.monthly.toLocaleString()}` : '',
-            date: new Date().toLocaleDateString()
+            date: new Date().toLocaleDateString(),
+            pdfSizeKB
           },
+          isPaid: false,
           signerEmail: formData.email
         })
       });

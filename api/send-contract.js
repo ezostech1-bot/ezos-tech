@@ -34,14 +34,16 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { pdfBase64, filename, meta, signerEmail } = req.body || {};
+    const { pdfBase64, filename, meta, signerEmail, isPaid } = req.body || {};
 
     if (!pdfBase64 || !filename) {
       res.status(400).json({ error: 'Missing PDF payload' });
       return;
     }
 
-    const subject = `Signed Contract PDF: ${meta?.contractLabel || 'EZOS TECH'}`;
+    const subject = `Signed Contract PDF: ${meta?.companyName || 'Client'} – ${meta?.contractLabel || 'EZOS TECH'}`;
+    const timestamp = new Date().toISOString();
+    const clientIp = (req.headers['x-forwarded-for'] || '').toString().split(',')[0].trim() || req.socket?.remoteAddress || 'unknown';
     const text = [
       'A signed contract PDF was generated.',
       '',
@@ -51,7 +53,10 @@ export default async function handler(req, res) {
       `Tier: ${meta?.contractLabel || '—'}`,
       `Setup Fee: ${meta?.setupFee || '—'}`,
       `Monthly: ${meta?.monthlyFee || '—'}`,
-      `Date: ${meta?.date || '—'}`
+      `Date: ${meta?.date || '—'}`,
+      `PDF Size: ${meta?.pdfSizeKB ? `${meta.pdfSizeKB} KB` : '—'}`,
+      `Timestamp: ${timestamp}`,
+      `IP: ${clientIp}`
     ].join('\n');
 
     const response = await fetch('https://api.resend.com/emails', {
@@ -62,8 +67,8 @@ export default async function handler(req, res) {
       },
       body: JSON.stringify({
         from,
-        to: signerEmail ? [signerEmail] : [to],
-        bcc: signerEmail ? [to] : undefined,
+        to: signerEmail && isPaid ? [signerEmail] : [to],
+        bcc: signerEmail && isPaid ? [to] : undefined,
         subject,
         text,
         attachments: [

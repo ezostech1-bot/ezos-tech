@@ -2531,7 +2531,7 @@ const ContractView = () => {
             date: new Date().toLocaleDateString(),
             pdfSizeKB
           },
-          isPaid: false,
+          isPaid: true,
           signerEmail: formData.email
         })
       });

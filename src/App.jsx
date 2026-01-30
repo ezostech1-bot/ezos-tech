@@ -2346,8 +2346,11 @@ const ContractView = () => {
   const [signatureData, setSignatureData] = useState('');
   const [isDrawing, setIsDrawing] = useState(false);
   const [signaturePulse, setSignaturePulse] = useState(false);
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+  const [pdfStatus, setPdfStatus] = useState('');
   const canvasRef = useRef(null);
   const lastPointRef = useRef({ x: 0, y: 0 });
+  const pdfRef = useRef(null);
 
   const params = new URLSearchParams(window.location.search);
   const typeParam = params.get('type');
@@ -2461,9 +2464,82 @@ const ContractView = () => {
     setFormData((prev) => ({ ...prev, signature: prev.signerName }));
   };
 
-  const handleDownloadPdf = () => {
-    window.print();
-    return true;
+  const handleDownloadPdf = async () => {
+    if (!pdfRef.current || isGeneratingPdf) return false;
+    setIsGeneratingPdf(true);
+    setPdfStatus('Preparing PDF...');
+    try {
+      const [{ default: html2canvas }, { jsPDF }] = await Promise.all([
+        import('html2canvas'),
+        import('jspdf')
+      ]);
+
+      const canvas = await html2canvas(pdfRef.current, {
+        scale: 2,
+        backgroundColor: '#ffffff',
+        useCORS: true
+      });
+
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF('p', 'pt', 'a4');
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = pdf.internal.pageSize.getHeight();
+      const imgWidth = pdfWidth;
+      const imgHeight = (canvas.height * pdfWidth) / canvas.width;
+
+      let position = 0;
+      let remainingHeight = imgHeight;
+
+      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+      remainingHeight -= pdfHeight;
+
+      while (remainingHeight > 0) {
+        position -= pdfHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+        remainingHeight -= pdfHeight;
+      }
+
+      const filename = `EZOS-Contract-${contractMeta?.label ?? contractType}.pdf`;
+      const pdfDataUri = pdf.output('datauristring');
+      pdf.save(filename);
+
+      setPdfStatus('Emailing PDF...');
+      const response = await fetch('/api/send-contract', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          filename,
+          pdfBase64: pdfDataUri.split(',')[1],
+          meta: {
+            companyName: formData.companyName,
+            signerName: formData.signerName,
+            email: formData.email,
+            contractLabel: contractMeta?.label ?? contractType.toUpperCase(),
+            setupFee: `$${setupFee.toLocaleString()}`,
+            monthlyFee: contractMeta?.monthly ? `$${contractMeta.monthly.toLocaleString()}` : '',
+            date: new Date().toLocaleDateString()
+          }
+        })
+      });
+
+      if (!response.ok) {
+        setPdfStatus('PDF downloaded (email failed).');
+        setTimeout(() => setPdfStatus(''), 4000);
+        return true;
+      }
+
+      setPdfStatus('PDF emailed to EZOS.');
+      setTimeout(() => setPdfStatus(''), 3500);
+      return true;
+    } catch (error) {
+      console.error('PDF generation error', error);
+      setPdfStatus('PDF download failed.');
+      setTimeout(() => setPdfStatus(''), 3500);
+      return false;
+    } finally {
+      setIsGeneratingPdf(false);
+    }
   };
 
   const handleSignAndPay = async () => {
@@ -2543,33 +2619,42 @@ const ContractView = () => {
     })
     .join('');
 
+  const renderContractPrintContent = () => (
+    <>
+      <div className="print-header">
+        <img src={logoFull} alt="EZOS TECH" className="print-logo" />
+        <h1>Master Services Agreement</h1>
+        <p>Tier: {contractMeta?.label ?? contractType.toUpperCase()} | Setup: ${setupFee.toLocaleString()} | Monthly: ${contractMeta?.monthly?.toLocaleString() ?? ''}</p>
+      </div>
+      <div className="print-meta">
+        <div><strong>Company:</strong> {formData.companyName || '—'}</div>
+        <div><strong>Signer:</strong> {formData.signerName || '—'}</div>
+        <div><strong>Email:</strong> {formData.email || '—'}</div>
+        <div><strong>Date:</strong> {new Date().toLocaleDateString()}</div>
+      </div>
+      <div className="print-contract" dangerouslySetInnerHTML={{ __html: contractHtml }} />
+      <div className="print-signature">
+        <div className="print-signature-meta">
+          <div><strong>Signer:</strong> {formData.signerName || '—'}</div>
+          <div><strong>Date:</strong> {new Date().toLocaleDateString()}</div>
+        </div>
+        <div><strong>Signature:</strong></div>
+        {signatureMode === 'draw' && signatureData ? (
+          <img src={signatureData} alt="Signature" className="print-signature-img" />
+        ) : (
+          <div className="print-signature-typed">{formData.signature || '—'}</div>
+        )}
+      </div>
+    </>
+  );
+
   return (
     <div className="flex flex-col pt-24 min-h-screen pb-20 relative z-10">
       <div className="print-only">
-        <div className="print-header">
-          <img src={logoFull} alt="EZOS TECH" className="print-logo" />
-          <h1>Master Services Agreement</h1>
-          <p>Tier: {contractMeta?.label ?? contractType.toUpperCase()} | Setup: ${setupFee.toLocaleString()} | Monthly: ${contractMeta?.monthly?.toLocaleString() ?? ''}</p>
-        </div>
-        <div className="print-meta">
-          <div><strong>Company:</strong> {formData.companyName || '—'}</div>
-          <div><strong>Signer:</strong> {formData.signerName || '—'}</div>
-          <div><strong>Email:</strong> {formData.email || '—'}</div>
-          <div><strong>Date:</strong> {new Date().toLocaleDateString()}</div>
-        </div>
-        <div className="print-contract" dangerouslySetInnerHTML={{ __html: contractHtml }} />
-        <div className="print-signature">
-          <div className="print-signature-meta">
-            <div><strong>Signer:</strong> {formData.signerName || '—'}</div>
-            <div><strong>Date:</strong> {new Date().toLocaleDateString()}</div>
-          </div>
-          <div><strong>Signature:</strong></div>
-          {signatureMode === 'draw' && signatureData ? (
-            <img src={signatureData} alt="Signature" className="print-signature-img" />
-          ) : (
-            <div className="print-signature-typed">{formData.signature || '—'}</div>
-          )}
-        </div>
+        {renderContractPrintContent()}
+      </div>
+      <div ref={pdfRef} className="pdf-render">
+        {renderContractPrintContent()}
       </div>
       <div className="container mx-auto px-4 max-w-5xl relative z-10 no-print">
         <FadeIn>
@@ -2739,13 +2824,13 @@ const ContractView = () => {
                       <button
                         type="button"
                         onClick={handleDownloadPdf}
-                        disabled={!signatureIsValid || !formData.companyName || !formData.signerName || !emailIsValid}
+                        disabled={!signatureIsValid || !formData.companyName || !formData.signerName || !emailIsValid || isGeneratingPdf}
                         className="w-full inline-flex items-center justify-center gap-2 rounded-lg border border-emerald-500/40 bg-emerald-500/10 px-4 py-2 text-[10px] font-mono uppercase tracking-widest text-emerald-200 hover:border-emerald-400/80 hover:bg-emerald-500/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        Download Contract PDF
+                        {isGeneratingPdf ? 'Preparing PDF...' : 'Download Contract PDF'}
                       </button>
                       <p className="text-[10px] text-zinc-500 text-center">
-                        Download before payment for your records.
+                        {pdfStatus || 'Download before payment for your records.'}
                       </p>
                     </div>
 
@@ -3088,6 +3173,15 @@ function App() {
         }
         .signature-confirmed {
           animation: signature-pulse 0.9s ease-out;
+        }
+        .pdf-render {
+          position: fixed;
+          left: -10000px;
+          top: 0;
+          width: 794px;
+          padding: 24px;
+          background: #ffffff;
+          color: #111827;
         }
         .print-only {
           display: none;

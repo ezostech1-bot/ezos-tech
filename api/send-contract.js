@@ -1,6 +1,13 @@
 export default async function handler(req, res) {
   const origin = req.headers.origin || '';
-  const allowedOrigins = ['https://ezostech.com', 'https://ezos-tech.vercel.app'];
+  const allowedOrigins = [
+    'https://ezostech.com',
+    'https://ezos-tech.vercel.app',
+    'http://localhost:5173',
+    'http://127.0.0.1:5173',
+    'http://localhost:5174',
+    'http://127.0.0.1:5174'
+  ];
   if (allowedOrigins.includes(origin)) {
     res.setHeader('Access-Control-Allow-Origin', origin);
   }

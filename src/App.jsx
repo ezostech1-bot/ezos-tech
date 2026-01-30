@@ -3216,7 +3216,7 @@ function App() {
           .print-signature-meta div { margin-bottom: 2px; }
           .print-signature-img { margin-top: 6px; max-width: 240px; max-height: 80px; filter: contrast(140%); }
           .print-signature-typed { margin-top: 6px; font-family: "Times New Roman", serif; font-size: 18px; color: #111827; }
-          .print-header { position: relative; padding-top: 8px; }
+          .print-header { position: relative; padding-top: 24px; }
           .print-logo { position: absolute; top: 0; right: 0; height: 112px; }
           @page { margin: 12mm; }
         }

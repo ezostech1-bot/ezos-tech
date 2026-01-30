@@ -2522,7 +2522,8 @@ const ContractView = () => {
             setupFee: `$${setupFee.toLocaleString()}`,
             monthlyFee: contractMeta?.monthly ? `$${contractMeta.monthly.toLocaleString()}` : '',
             date: new Date().toLocaleDateString()
-          }
+          },
+          signerEmail: formData.email
         })
       });
 
@@ -2611,7 +2612,7 @@ const ContractView = () => {
       }
 
       if (sectionTitleMatch) {
-        return `<div class="contract-section-title">${escapeHtml(trimmed)}</div>`;
+        return `<div class="contract-section-title contract-section-title-strong">${escapeHtml(trimmed)}</div>`;
       }
 
       if (listMatch) {
@@ -3182,9 +3183,15 @@ function App() {
           left: -10000px;
           top: 0;
           width: 794px;
-          padding: 24px;
+          padding: 40px 24px 24px;
           background: #ffffff;
           color: #111827;
+        }
+        .pdf-render .print-logo {
+          position: absolute;
+          top: 0;
+          right: 0;
+          height: 104px;
         }
         .print-only {
           display: none;
@@ -3197,7 +3204,7 @@ function App() {
           .print-header p { font-size: 12px; color: #6b7280; margin: 0 0 14px 0; }
           .print-contract { font-size: 12px; line-height: 1.5; }
           .print-contract .contract-heading { font-weight: 700; margin-top: 18px; }
-          .print-contract .contract-section-title { margin-top: 12px; font-weight: 600; }
+          .print-contract .contract-section-title { margin-top: 12px; font-weight: 600; color: #111827; }
           .print-contract .contract-bullet { display: flex; gap: 8px; margin-left: 14px; }
           .print-contract .contract-bullet-dot { font-weight: 700; }
           .print-contract .contract-line { margin-left: 14px; }
@@ -3210,7 +3217,7 @@ function App() {
           .print-signature-img { margin-top: 6px; max-width: 240px; max-height: 80px; filter: contrast(140%); }
           .print-signature-typed { margin-top: 6px; font-family: "Times New Roman", serif; font-size: 18px; color: #111827; }
           .print-header { position: relative; padding-top: 8px; }
-          .print-logo { position: absolute; top: 0; right: 0; height: 28px; }
+          .print-logo { position: absolute; top: 0; right: 0; height: 112px; }
           @page { margin: 12mm; }
         }
         .ticker {
@@ -3310,14 +3317,17 @@ function App() {
         .contract-heading {
           margin-top: 6px;
           font-weight: 700;
-          color: #e4e4e7;
+          color: #b7bcc6;
         }
         .contract-section-title {
           margin-top: 12px;
           font-weight: 700;
           letter-spacing: 0.08em;
           text-transform: uppercase;
-          color: #d4d4d8;
+          color: #9aa0aa;
+        }
+        .contract-section-title-strong {
+          color: #c0c6d1;
         }
         .contract-line {
           margin-left: 12px;

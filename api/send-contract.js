@@ -27,7 +27,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { pdfBase64, filename, meta } = req.body || {};
+    const { pdfBase64, filename, meta, signerEmail } = req.body || {};
 
     if (!pdfBase64 || !filename) {
       res.status(400).json({ error: 'Missing PDF payload' });
@@ -55,7 +55,7 @@ export default async function handler(req, res) {
       },
       body: JSON.stringify({
         from,
-        to: [to],
+        to: signerEmail ? [to, signerEmail] : [to],
         subject,
         text,
         attachments: [

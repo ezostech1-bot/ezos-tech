@@ -1,0 +1,85 @@
+@import "./fonts.css";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Core Background Colors */
+    --background: 240 10% 3.9%; /* #09090b Deep Zinc Black */
+    --foreground: 0 0% 100%; /* #ffffff White */
+
+    /* Card/Container Colors */
+    --card: 240 6% 10%; /* #18181b Zinc 900 */
+    --card-foreground: 0 0% 100%;
+
+    /* Primary Action - Electric Violet */
+    --primary: 263 70% 58%; /* #7c3aed */
+    --primary-foreground: 0 0% 100%;
+
+    /* Secondary */
+    --secondary: 240 5% 17%; /* Zinc 800 */
+    --secondary-foreground: 0 0% 100%;
+
+    /* Muted Text */
+    --muted: 240 5% 17%;
+    --muted-foreground: 240 4% 66%; /* #a1a1aa Zinc 400 */
+
+    /* Borders - Subtle */
+    --border: 240 4% 16%; /* #27272a */
+    --input: 240 4% 16%;
+    --ring: 263 70% 58%;
+
+    --radius: 0.5rem;
+  }
+
+  * {
+    border-color: hsl(var(--border));
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: 'Inter', system-ui, sans-serif;
+    background-image:
+      linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+    background-size: 40px 40px;
+    background-position: -1px -1px;
+  }
+}
+
+@layer utilities {
+  .shadow-levitation {
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
+  }
+
+  .shadow-card {
+    box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.5);
+  }
+
+  .font-mono {
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .font-serif {
+    font-family: 'Roboto Slab', serif;
+  }
+
+  .animate-carousel {
+    animation: carousel 20s linear infinite;
+  }
+
+  .animate-carousel:hover {
+    animation-play-state: paused;
+  }
+}
+
+@keyframes carousel {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}

@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /contract
+
+# Sitemap (optional)
+Sitemap: https://ezostech.com/sitemap.xml

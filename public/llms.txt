@@ -1,0 +1,15 @@
+# llms.txt for EZOS TECH
+User-agent: *
+Allow: /
+Disallow: /contract
+
+Sitemap: https://ezostech.com/sitemap.xml
+Contact: info@ezostech.com
+Language: en
+
+Primary: https://ezostech.com/
+Primary: https://ezostech.com/how-it-works
+Primary: https://ezostech.com/pricing
+Primary: https://ezostech.com/academy
+Primary: https://ezostech.com/contact
+Primary: https://ezostech.com/apply

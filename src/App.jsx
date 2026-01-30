@@ -2475,13 +2475,13 @@ const ContractView = () => {
       ]);
 
       const canvas = await html2canvas(pdfRef.current, {
-        scale: 2,
+        scale: 1,
         backgroundColor: '#ffffff',
         useCORS: true
       });
 
-      const imgData = canvas.toDataURL('image/png');
-      const pdf = new jsPDF('p', 'pt', 'a4');
+      const imgData = canvas.toDataURL('image/jpeg', 0.6);
+      const pdf = new jsPDF('p', 'pt', 'a4', true);
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const pdfHeight = pdf.internal.pageSize.getHeight();
       const imgWidth = pdfWidth;
@@ -2490,21 +2490,27 @@ const ContractView = () => {
       let position = 0;
       let remainingHeight = imgHeight;
 
-      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+      pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight, undefined, 'FAST');
       remainingHeight -= pdfHeight;
 
       while (remainingHeight > 0) {
         position -= pdfHeight;
         pdf.addPage();
-        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+        pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight, undefined, 'FAST');
         remainingHeight -= pdfHeight;
       }
 
       const filename = `EZOS-Contract-${contractMeta?.label ?? contractType}.pdf`;
       const pdfDataUri = pdf.output('datauristring');
+      const pdfBase64 = pdfDataUri.split(',')[1] || '';
       pdf.save(filename);
 
       setPdfStatus('Emailing PDF...');
+      if (pdfBase64.length > 3_000_000) {
+        setPdfStatus('PDF downloaded (too large to email).');
+        setTimeout(() => setPdfStatus(''), 4000);
+        return true;
+      }
       const apiHost = window.location.hostname.endsWith('vercel.app')
         ? ''
         : 'https://ezos-tech.vercel.app';
@@ -2513,7 +2519,7 @@ const ContractView = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           filename,
-          pdfBase64: pdfDataUri.split(',')[1],
+          pdfBase64,
           meta: {
             companyName: formData.companyName,
             signerName: formData.signerName,
@@ -3182,7 +3188,7 @@ function App() {
           position: fixed;
           left: -10000px;
           top: 0;
-          width: 794px;
+          width: 680px;
           padding: 40px 24px 24px;
           background: #ffffff;
           color: #111827;
